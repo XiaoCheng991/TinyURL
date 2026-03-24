@@ -1,0 +1,22 @@
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Go build outputs
+/bin/
+/build/
+
+# Dependencies
+vendor/
+
+# Testing
+*.out
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Planning artifacts (GSD workflow)
+.planning/
