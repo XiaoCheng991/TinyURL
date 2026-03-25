@@ -1,0 +1,24 @@
+{
+  "mcpServers": {
+    "exa": {
+      "baseUrl": "https://m.exa.ai/mcp"
+    },
+    "weibo": {
+      "command": "mcp-server-weibo"
+    },
+    "douyin": {
+      "command": "douyin-mcp-server"
+    },
+    "linkedin": {
+      "command": "linkedin-scraper-mcp"
+    },
+    "xiaohongshu": {
+      "baseUrl": "http://localhost:18060/mcp",
+      "headers": {
+        "accept": "application/json, text/event-stream",
+        "cookie": "a1=19d22c3d6e6e35c49ft3bpvosh8k4uv4tabwtt6m430000199517; webId=3751b56da1db83ea2e8f2409692d84ee; xsecappid=xhs-pc-web; gid=yjfJJSqiyW9DyjfJJSqfK09KdKdq2S4ji9qDD64UhlMxYEq8T47h49888yjj2yW8yiSii8f8; webBuild=6.1.3; loadts=1774405688516; websectiga=7750c37de43b7be9de8ed9ff8ea0e576519e8cd2157322eb972ecb429a7735d4; abRequestId=1bee49f6-313b-597c-81c9-4a1b4eeaf52d; sec_poison_id=6c67b768-da6e-40d0-816b-2903c01a5aeb; unread={\"ub\":\"69c14a5d00000000210135d8\",\"ue\":\"69c25aba000000001f006ced\",\"uc\":1296}"
+      }
+    }
+  },
+  "imports": []
+}
