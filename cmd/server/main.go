@@ -1,6 +1,8 @@
 package main
 
 import (
+	"TinyURL/gateway"
+	"TinyURL/repo"
 	"fmt"
 	"log"
 
@@ -10,14 +12,14 @@ import (
 )
 
 func main() {
-	// 加载配置
+	// 1. 加载配置
 	cfg, err := config.Load("config/config.yaml")
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 
 	// 设置 Gin 模式
-	gin.SetMode(gin.ReleaseMode)
+	gin.SetMode(gin.ReleaseMode) // 生产模式
 
 	// 创建 Gin 路由
 	r := gin.New()
@@ -30,6 +32,15 @@ func main() {
 			"status": "ok",
 		})
 	})
+
+	// 初始化内存repo
+	memoryRepo := repo.NewMemoryRepo()
+
+	// 创建短链
+	r.POST("/api/shorten", gateway.CreateShortURL(memoryRepo))
+
+	// 重定向
+	r.GET(":code", gateway.RedirectURL(memoryRepo))
 
 	// 启动服务
 	addr := fmt.Sprintf("%s:%d", cfg.App.Host, cfg.App.Port)

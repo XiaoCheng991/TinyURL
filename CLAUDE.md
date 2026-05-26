@@ -77,6 +77,44 @@ Use these entry points:
 Do not make direct repo edits outside a GSD workflow unless the user explicitly asks to bypass it.
 <!-- GSD:workflow-end -->
 
+## gstack
+
+使用 gstack 的 `/browse` skill 进行所有网页浏览任务，**不要使用** `mcp__claude-in-chrome__*` 工具。
+
+### 可用的 gstack skills:
+
+| Skill | 用途 |
+|-------|------|
+| `/browse` | 网页浏览（优先于 MCP 工具） |
+| `/connect-chrome` | 连接 Chrome 浏览器 |
+| `/setup-browser-cookies` | 设置浏览器 cookies |
+| `/office-hours` | 团队同步和答疑 |
+| `/plan-ceo-review` | 规划 CEO 汇报 |
+| `/plan-eng-review` | 规划工程评审 |
+| `/plan-design-review` | 规划设计评审 |
+| `/design-consultation` | 获取设计咨询 |
+| `/design-shotgun` | 快速设计反馈 |
+| `/design-review` | 设计评审 |
+| `/review` | 代码评审 |
+| `/ship` | 发布代码 |
+| `/land-and-deploy` | 提交并部署 |
+| `/canary` | 金丝雀部署 |
+| `/benchmark` | 运行基准测试 |
+| `/qa` | 质量保证 |
+| `/qa-only` | 仅 QA 模式 |
+| `/retro` | 运行回顾会 |
+| `/investigate` | 调查问题 |
+| `/document-release` | 文档发布 |
+| `/codex` | Codex 操作 |
+| `/cso` | CSO 操作 |
+| `/autoplan` | 自动规划 |
+| `/careful` | 谨慎模式 |
+| `/freeze` | 冻结变更 |
+| `/guard` | 守护模式 |
+| `/unfreeze` | 解冻变更 |
+| `/gstack-upgrade` | 升级 gstack |
+| `/setup-deploy` | 设置部署 |
+
 
 
 <!-- GSD:profile-start -->
