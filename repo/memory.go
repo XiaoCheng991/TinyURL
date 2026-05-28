@@ -3,7 +3,6 @@ package repo
 import (
 	"TinyURL/entity"
 	"TinyURL/logic"
-
 	"sync"
 	"time"
 )
@@ -12,7 +11,7 @@ import (
  * 类似于 Service 层
  */
 
-// MemoryRepo 存数据，一个计数器墨子自增id，一把锁保证并发安全
+// MemoryRepo 存数据，一个计数器自增id，一把锁保证并发安全
 type MemoryRepo struct {
 	mux    sync.RWMutex
 	data   map[uint64]*entity.URLMapping

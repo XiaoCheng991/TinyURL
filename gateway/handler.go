@@ -2,41 +2,60 @@ package gateway
 
 import (
 	"TinyURL/entity"
+	"TinyURL/logic"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-// CreateShortURL 新建短链
-func CreateShortURL(c *gin.Context) {
-	// 1. 绑定请求体 JSON 到 ShortenRequest
-	var req entity.ShortenRequest
-	if err := c.ShouldBindBodyWithJSON(&req); err != nil {
-		// 绑定失败，返回错误
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+// CreateShortURL 返回一个闭包，注入repo依赖
+func CreateShortURL(s entity.URLService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// 1. 绑定请求体 JSON 到 ShortenRequest
+		var req entity.ShortenRequest
+		if err := c.ShouldBindBodyWithJSON(&req); err != nil {
+			// 绑定失败，返回错误
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+			return
+		}
+
+		// 2. 调 logic/repo 保存，拿到自增ID
+		mapping, status := s.Create(req.LongURL)
+		if status != http.StatusCreated {
+			c.JSON(status, gin.H{"error": "create failed"})
+			return
+		}
+
+		shortCode := logic.Encode(mapping.ID)
+
+		// 3. 返回
+		c.JSON(http.StatusCreated, entity.ShortenResponse{
+			LongURL:   mapping.LongURL,
+			ShortCode: shortCode,
+			ShortURL:  "http://tiny.url/" + shortCode,
+			CreatedAt: mapping.CreatedAt,
+		})
 	}
-
-	// 2. 验证参数（Gin binding 帮你做了一部分，但你还要检查空值）
-
-	// 返回 JSON
-	c.JSON(http.StatusOK, gin.H{
-		"short_url":  "http://tiny.url/2bg",
-		"short_code": "2bg",
-		"long_url":   req.LongURL,
-	})
-
-	// 3. 调 logic/repo 处理业务（现在还没 repo 假装存在）
-
-	// 4. 返回响应
-
 }
 
 // RedirectURL 重定向
-func RedirectURL(c *gin.Context) {
-	code := c.Param("code")
-	_ = code // TODO: 查repo获取长链后重定向
+func RedirectURL(s entity.URLService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// 获取参数
+		code := c.Param("code")
 
-	// HTTP 重定向
-	c.Redirect(http.StatusFound, "https://www.baidu.com")
+		if code == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "missing short_code"})
+			return
+		}
+
+		// 查 repo 拿长链
+		longURL, status := s.RedirectTo(code)
+		if status != http.StatusFound {
+			c.JSON(status, gin.H{"error": "not found"})
+			return
+		}
+
+		c.Redirect(http.StatusFound, longURL)
+	}
 }

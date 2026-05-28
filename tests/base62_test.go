@@ -1,6 +1,9 @@
-package logic
+package tests
 
-import "testing"
+import (
+	"TinyURL/logic"
+	"testing"
+)
 
 func TestEncode(t *testing.T) {
 	tests := []struct {
@@ -20,7 +23,7 @@ func TestEncode(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := Encode(tt.id)
+			got := logic.Encode(tt.id)
 			if got != tt.want {
 				t.Errorf("Encode() = %v, want %v", got, tt.want)
 			}
@@ -48,7 +51,7 @@ func TestDecode(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := Decode(tt.code)
+			result, err := logic.Decode(tt.code)
 			if tt.shouldErr {
 				if err == nil {
 					t.Errorf("Decode(%q) should return error", tt.code)

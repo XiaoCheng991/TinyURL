@@ -3,6 +3,7 @@ package main
 import (
 	"TinyURL/gateway"
 	"TinyURL/repo"
+	"TinyURL/service"
 	"fmt"
 	"log"
 
@@ -27,20 +28,24 @@ func main() {
 	r.Use(gin.Logger())
 
 	// 基础健康检查
-	r.GET("/health", func(c *gin.Context) {
+	r.GET("/api/v1/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"status": "ok",
 		})
 	})
 
-	// 初始化内存repo
-	memoryRepo := repo.NewMemoryRepo()
+	// 初始化MySQL repo
+	mysqlRepo, err := repo.NewMySQLRepo(cfg.Database.DSN())
+	if err != nil {
+		log.Fatalf("Failed to create repo: %v", err)
+	}
 
-	// 创建短链
-	r.POST("/api/shorten", gateway.CreateShortURL(memoryRepo))
+	// 初始化 service（注入repo）
+	urlService := service.NewURLService(mysqlRepo)
 
-	// 重定向
-	r.GET(":code", gateway.RedirectURL(memoryRepo))
+	// 注册handler（注入 service）
+	r.POST("/api/v1/shorten", gateway.CreateShortURL(urlService))
+	r.GET("/api/v1/:code", gateway.RedirectURL(urlService))
 
 	// 启动服务
 	addr := fmt.Sprintf("%s:%d", cfg.App.Host, cfg.App.Port)

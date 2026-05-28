@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 
 	"gopkg.in/yaml.v3"
@@ -59,4 +60,10 @@ func Load(path string) (*Config, error) {
 // Get 获取全局配置
 func Get() *Config {
 	return cfg
+}
+
+// DSN 设置 数据库连接
+func (d DatabaseConfig) DSN() string {
+	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		d.Username, d.Password, d.Host, d.Port, d.Name)
 }
