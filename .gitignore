@@ -20,3 +20,6 @@ Thumbs.db
 
 # Planning artifacts (GSD workflow)
 .planning/
+
+# Docs
+Docs/*

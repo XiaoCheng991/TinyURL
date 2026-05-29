@@ -1,0 +1,388 @@
+{
+  "version": "1.0.0",
+  "project": {
+    "name": "TinyURL",
+    "languages": ["go", "yaml", "markdown"],
+    "frameworks": ["gin", "gorm"],
+    "description": "Go语言实战学习项目 —— 高性能短域名服务。采用Clean Architecture分层架构，通过Base62算法将自增ID转为短码，支持长短链接映射、Redis缓存、MySQL持久化。目标：一个月内从Go语法入门到分布式架构。",
+    "analyzedAt": "2026-05-25T00:00:00+08:00",
+    "gitCommitHash": "e03a3ae"
+  },
+  "nodes": [
+    {
+      "id": "file:cmd/server/main.go",
+      "type": "file",
+      "name": "main.go",
+      "filePath": "cmd/server/main.go",
+      "summary": "程序入口。加载config.yaml配置，初始化Gin路由，注册健康检查(/health)、创建短链(POST /api/shorten)、短链重定向(GET /:code)三个路由，启动HTTP服务。",
+      "tags": ["entry-point", "http-server", "gin", "routing"],
+      "complexity": "simple",
+      "languageNotes": "使用gin.New()而非gin.Default()，手动添加Recovery和Logger中间件"
+    },
+    {
+      "id": "file:gateway/handler.go",
+      "type": "file",
+      "name": "handler.go",
+      "filePath": "gateway/handler.go",
+      "summary": "接口层Handler。CreateShortURL处理短链创建请求（JSON绑定+参数验证，当前返回硬编码假数据）；RedirectURL处理短链跳转（当前重定向到百度假数据）。尚未接入logic/repo层。",
+      "tags": ["handler", "gin", "http", "gateway"],
+      "complexity": "simple",
+      "languageNotes": "使用c.ShouldBindBodyWithJSON进行请求体绑定，binding标签做参数校验"
+    },
+    {
+      "id": "file:logic/base62.go",
+      "type": "file",
+      "name": "base62.go",
+      "filePath": "logic/base62.go",
+      "summary": "核心算法层。Encode将uint64 ID转为Base62短码（字符集：0-9A-Za-z）；Decode将短码还原为uint64 ID；MustDecode为panic版本。通过取余法实现进制转换。",
+      "tags": ["algorithm", "base62", "encoding", "decoding", "core-logic"],
+      "complexity": "moderate",
+      "languageNotes": "Encode处理id=0边界；Decode用双重循环查找字符索引，O(n*m)复杂度"
+    },
+    {
+      "id": "file:logic/base62_test.go",
+      "type": "file",
+      "name": "base62_test.go",
+      "filePath": "logic/base62_test.go",
+      "summary": "Base62算法单元测试。TestEncode覆盖0/1/9/10/61/62/10024/999999等边界值；TestDecode覆盖正常解码和非法字符(!!!)错误场景。使用t.Run子测试。",
+      "tags": ["unit-test", "base62", "testing"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:logic/errors.go",
+      "type": "file",
+      "name": "errors.go",
+      "filePath": "logic/errors.go",
+      "summary": "全局错误变量定义。包含ErrInvalidBase62Char、ErrEmptyShortCode、ErrCodeTooLong、ErrURLNotFound、ErrKeyNotFound五个预定义错误。",
+      "tags": ["errors", "constants"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:entity/url_mapping.go",
+      "type": "file",
+      "name": "url_mapping.go",
+      "filePath": "entity/url_mapping.go",
+      "summary": "核心实体层。URLMapping结构体（贫血模型）映射short_url_mappings表，含ID/LongURL/CreatedAt/ExpiredAt字段；ShortenRequest为API请求体(binding校验URL)；ShortenResponse为API响应体。",
+      "tags": ["entity", "model", "gorm", "dto"],
+      "complexity": "simple",
+      "languageNotes": "使用gorm标签做ORM映射，json标签做序列化，binding标签做Gin参数校验"
+    },
+    {
+      "id": "file:entity/archive/url.go",
+      "type": "file",
+      "name": "url.go",
+      "filePath": "entity/archive/url.go",
+      "summary": "旧版实体（已归档）。与entity/url_mapping.go功能重复，多了ShortCode字段。已被新版替代，保留在archive目录。",
+      "tags": ["entity", "archived", "legacy"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:repo/memory.go",
+      "type": "file",
+      "name": "memory.go",
+      "filePath": "repo/memory.go",
+      "summary": "内存存储层（临时实现）。MemoryRepo使用sync.RWMutex保证并发安全，map存储数据，nextID自增。Save保存长链返回URLMapping；FindByID按ID查询。替代MySQL的临时方案。",
+      "tags": ["repository", "memory-store", "concurrency", "temporary"],
+      "complexity": "moderate",
+      "languageNotes": "使用sync.RWMutex实现读写锁，写锁Lock/读锁RLock"
+    },
+    {
+      "id": "file:config/config.go",
+      "type": "file",
+      "name": "config.go",
+      "filePath": "config/config.go",
+      "summary": "配置管理。Config结构体包含App/Database/Redis三段配置；Load从yaml文件解析到全局cfg变量；Get返回全局配置指针。",
+      "tags": ["config", "yaml", "singleton"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:config/config.yaml",
+      "type": "file",
+      "name": "config.yaml",
+      "filePath": "config/config.yaml",
+      "summary": "YAML配置文件。App监听0.0.0.0:8088；MySQL连接localhost:3306，库名tinyurl；Redis连接localhost:6379，DB1。",
+      "tags": ["config", "yaml"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:go.mod",
+      "type": "file",
+      "name": "go.mod",
+      "filePath": "go.mod",
+      "summary": "Go模块定义。模块名TinyURL，Go 1.25.0，依赖gin-gonic/gin v1.12.0和gopkg.in/yaml.v3。",
+      "tags": ["go-module", "dependencies"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:README.md",
+      "type": "file",
+      "name": "README.md",
+      "filePath": "README.md",
+      "summary": "项目说明文档。描述Clean Architecture目录结构、Base62算法原理、MySQL+Redis集成策略、单元测试要求、高并发和内存管理难点。",
+      "tags": ["documentation", "readme"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:.planning/ROADMAP.md",
+      "type": "file",
+      "name": "ROADMAP.md",
+      "filePath": ".planning/ROADMAP.md",
+      "summary": "项目路线图。6个阶段：基础设施→核心短链→Redis缓存→测试完善→高级特性→文档优化。含需求映射和成功标准。",
+      "tags": ["planning", "roadmap"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:logic/archive/base62.go",
+      "type": "file",
+      "name": "base62.go",
+      "filePath": "logic/archive/base62.go",
+      "summary": "旧版Base62算法（已归档）。功能与logic/base62.go相同，保留在archive目录。",
+      "tags": ["algorithm", "archived", "legacy"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:logic/archive/base62_test.go",
+      "type": "file",
+      "name": "base62_test.go",
+      "filePath": "logic/archive/base62_test.go",
+      "summary": "旧版Base62测试（已归档）。与logic/base62_test.go功能相同。",
+      "tags": ["unit-test", "archived", "legacy"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:logic/base62.go:Encode",
+      "type": "function",
+      "name": "Encode",
+      "filePath": "logic/base62.go",
+      "summary": "uint64 → Base62字符串。取余法进制转换，处理id=0边界，反转结果。",
+      "tags": ["algorithm", "encoding"]
+    },
+    {
+      "id": "function:logic/base62.go:Decode",
+      "type": "function",
+      "name": "Decode",
+      "filePath": "logic/base62.go",
+      "summary": "Base62字符串 → uint64。遍历字符查索引，累加计算。遇非法字符返回ErrInvalidBase62Char。",
+      "tags": ["algorithm", "decoding"]
+    },
+    {
+      "id": "function:logic/base62.go:MustDecode",
+      "type": "function",
+      "name": "MustDecode",
+      "filePath": "logic/base62.go",
+      "summary": "Decode的panic版本，失败时直接panic。",
+      "tags": ["algorithm", "decoding"]
+    },
+    {
+      "id": "function:repo/memory.go:Save",
+      "type": "function",
+      "name": "Save",
+      "filePath": "repo/memory.go",
+      "summary": "保存长链URL到内存map，自增nextID作为主键，返回URLMapping。",
+      "tags": ["repository", "create"]
+    },
+    {
+      "id": "function:repo/memory.go:FindByID",
+      "type": "function",
+      "name": "FindByID",
+      "filePath": "repo/memory.go",
+      "summary": "按ID从内存map查询URLMapping，不存在返回ErrKeyNotFound。",
+      "tags": ["repository", "read"]
+    },
+    {
+      "id": "function:config/config.go:Load",
+      "type": "function",
+      "name": "Load",
+      "filePath": "config/config.go",
+      "summary": "从YAML文件加载配置到全局cfg变量。",
+      "tags": ["config", "load"]
+    },
+    {
+      "id": "function:config/config.go:Get",
+      "type": "function",
+      "name": "Get",
+      "filePath": "config/config.go",
+      "summary": "返回全局配置指针（单例模式）。",
+      "tags": ["config", "singleton"]
+    },
+    {
+      "id": "function:gateway/handler.go:CreateShortURL",
+      "type": "function",
+      "name": "CreateShortURL",
+      "filePath": "gateway/handler.go",
+      "summary": "Gin Handler，处理POST /api/shorten请求。绑定JSON到ShortenRequest，当前返回硬编码假数据。",
+      "tags": ["handler", "create"]
+    },
+    {
+      "id": "function:gateway/handler.go:RedirectURL",
+      "type": "function",
+      "name": "RedirectURL",
+      "filePath": "gateway/handler.go",
+      "summary": "Gin Handler，处理GET /:code请求。提取路径参数code，当前重定向到百度假数据。",
+      "tags": ["handler", "redirect"]
+    },
+    {
+      "id": "class:entity/url_mapping.go:URLMapping",
+      "type": "class",
+      "name": "URLMapping",
+      "filePath": "entity/url_mapping.go",
+      "summary": "长短链接映射核心实体。贫血模型，GORM映射short_url_mappings表。",
+      "tags": ["entity", "gorm", "model"]
+    },
+    {
+      "id": "class:entity/url_mapping.go:ShortenRequest",
+      "type": "class",
+      "name": "ShortenRequest",
+      "filePath": "entity/url_mapping.go",
+      "summary": "创建短链API请求体。LongURL必填(binding:required,url)，CustomCode可选。",
+      "tags": ["dto", "request", "validation"]
+    },
+    {
+      "id": "class:entity/url_mapping.go:ShortenResponse",
+      "type": "class",
+      "name": "ShortenResponse",
+      "filePath": "entity/url_mapping.go",
+      "summary": "创建短链API响应体。包含LongURL/ShortURL/ShortCode/CreatedAt。",
+      "tags": ["dto", "response"]
+    },
+    {
+      "id": "class:repo/memory.go:MemoryRepo",
+      "type": "class",
+      "name": "MemoryRepo",
+      "filePath": "repo/memory.go",
+      "summary": "内存存储仓库。sync.RWMutex并发安全，map存储，nextID自增。临时替代MySQL。",
+      "tags": ["repository", "memory", "concurrent"]
+    },
+    {
+      "id": "class:config/config.go:Config",
+      "type": "class",
+      "name": "Config",
+      "filePath": "config/config.go",
+      "summary": "应用配置结构体。包含App/Database/Redis三段嵌套配置。",
+      "tags": ["config", "struct"]
+    }
+  ],
+  "edges": [
+    { "source": "file:cmd/server/main.go", "target": "file:config/config.go", "type": "imports", "weight": 0.7 },
+    { "source": "file:cmd/server/main.go", "target": "file:gateway/handler.go", "type": "imports", "weight": 0.7 },
+    { "source": "file:gateway/handler.go", "target": "file:entity/url_mapping.go", "type": "imports", "weight": 0.7 },
+    { "source": "file:repo/memory.go", "target": "file:entity/url_mapping.go", "type": "imports", "weight": 0.7 },
+    { "source": "file:repo/memory.go", "target": "file:logic/errors.go", "type": "imports", "weight": 0.7 },
+    { "source": "file:logic/base62.go", "target": "file:logic/errors.go", "type": "imports", "weight": 0.7 },
+    { "source": "file:logic/base62_test.go", "target": "file:logic/base62.go", "type": "tested_by", "weight": 0.5 },
+    { "source": "file:config/config.go", "target": "file:config/config.yaml", "type": "configures", "weight": 0.6 },
+    { "source": "function:cmd/server/main.go:main", "target": "function:config/config.go:Load", "type": "calls", "weight": 0.8 },
+    { "source": "function:cmd/server/main.go:main", "target": "function:gateway/handler.go:CreateShortURL", "type": "calls", "weight": 0.8 },
+    { "source": "function:cmd/server/main.go:main", "target": "function:gateway/handler.go:RedirectURL", "type": "calls", "weight": 0.8 },
+    { "source": "function:gateway/handler.go:CreateShortURL", "target": "class:entity/url_mapping.go:ShortenRequest", "type": "calls", "weight": 0.8 },
+    { "source": "function:repo/memory.go:Save", "target": "class:entity/url_mapping.go:URLMapping", "type": "calls", "weight": 0.8 },
+    { "source": "function:repo/memory.go:FindByID", "target": "class:entity/url_mapping.go:URLMapping", "type": "calls", "weight": 0.8 },
+    { "source": "function:repo/memory.go:FindByID", "target": "file:logic/errors.go", "type": "depends_on", "weight": 0.6 },
+    { "source": "function:logic/base62.go:Decode", "target": "file:logic/errors.go", "type": "depends_on", "weight": 0.6 },
+    { "source": "function:logic/base62.go:MustDecode", "target": "function:logic/base62.go:Decode", "type": "calls", "weight": 0.8 },
+    { "source": "class:entity/url_mapping.go:URLMapping", "target": "class:entity/url_mapping.go:TableName", "type": "contains", "weight": 1.0 },
+    { "source": "file:entity/archive/url.go", "target": "file:entity/url_mapping.go", "type": "similar_to", "weight": 0.5 },
+    { "source": "file:logic/archive/base62.go", "target": "file:logic/base62.go", "type": "similar_to", "weight": 0.5 },
+    { "source": "file:logic/archive/base62_test.go", "target": "file:logic/base62_test.go", "type": "similar_to", "weight": 0.5 }
+  ],
+  "layers": [
+    {
+      "id": "layer:entry",
+      "name": "入口层 (cmd)",
+      "description": "程序启动入口，负责初始化配置、注册路由、启动HTTP服务",
+      "nodeIds": ["file:cmd/server/main.go"]
+    },
+    {
+      "id": "layer:gateway",
+      "name": "接口层 (gateway)",
+      "description": "HTTP协议解析层，Gin Handler处理请求绑定和响应返回，不含业务逻辑",
+      "nodeIds": ["file:gateway/handler.go"]
+    },
+    {
+      "id": "layer:logic",
+      "name": "逻辑层 (logic)",
+      "description": "核心业务逻辑层，包含Base62编解码算法和全局错误定义",
+      "nodeIds": ["file:logic/base62.go", "file:logic/base62_test.go", "file:logic/errors.go"]
+    },
+    {
+      "id": "layer:entity",
+      "name": "实体层 (entity)",
+      "description": "数据模型定义层，包含数据库实体结构体、请求/响应DTO",
+      "nodeIds": ["file:entity/url_mapping.go"]
+    },
+    {
+      "id": "layer:repo",
+      "name": "持久层 (repo)",
+      "description": "数据存储访问层，当前为内存实现，后续替换为MySQL+Redis",
+      "nodeIds": ["file:repo/memory.go"]
+    },
+    {
+      "id": "layer:config",
+      "name": "配置层 (config)",
+      "description": "应用配置管理，YAML配置文件解析和全局配置访问",
+      "nodeIds": ["file:config/config.go", "file:config/config.yaml"]
+    },
+    {
+      "id": "layer:archive",
+      "name": "归档层 (archive)",
+      "description": "旧版代码归档，保留在archive目录供参考",
+      "nodeIds": ["file:entity/archive/url.go", "file:logic/archive/base62.go", "file:logic/archive/base62_test.go"]
+    },
+    {
+      "id": "layer:docs",
+      "name": "文档层 (docs)",
+      "description": "项目文档、规划文件和学习资料",
+      "nodeIds": ["file:README.md", "file:.planning/ROADMAP.md"]
+    }
+  ],
+  "tour": [
+    {
+      "order": 1,
+      "title": "项目概览",
+      "description": "TinyURL是一个Go语言实战学习项目，通过构建短域名服务掌握Go核心语法、并发编程和Clean Architecture。先看README了解整体目标和技术栈。",
+      "nodeIds": ["file:README.md", "file:.planning/ROADMAP.md"]
+    },
+    {
+      "order": 2,
+      "title": "程序入口",
+      "description": "从main.go开始。加载config.yaml配置，初始化Gin路由，注册三个端点：健康检查、创建短链、短链重定向。",
+      "nodeIds": ["file:cmd/server/main.go"]
+    },
+    {
+      "order": 3,
+      "title": "接口层 (Gateway)",
+      "description": "handler.go定义了两个Gin Handler。CreateShortURL绑定JSON请求体（当前返回假数据）；RedirectURL提取路径参数做重定向（当前跳转到百度）。尚未接入业务逻辑层。",
+      "nodeIds": ["file:gateway/handler.go"]
+    },
+    {
+      "order": 4,
+      "title": "实体层 (Entity)",
+      "description": "url_mapping.go定义核心数据模型：URLMapping（GORM实体）、ShortenRequest（请求DTO含binding校验）、ShortenResponse（响应DTO）。",
+      "nodeIds": ["file:entity/url_mapping.go"]
+    },
+    {
+      "order": 5,
+      "title": "核心算法 — Base62",
+      "description": "base62.go是项目核心。Encode将uint62 ID转为短码（如10024→'2bg'），Decode反向还原。字符集：0-9A-Za-z。通过取余法实现进制转换。",
+      "nodeIds": ["file:logic/base62.go", "file:logic/base62_test.go"]
+    },
+    {
+      "order": 6,
+      "title": "持久层 (Repo)",
+      "description": "memory.go是临时内存存储实现，用sync.RWMutex保证并发安全。Save保存长链，FindByID按ID查询。后续需替换为MySQL+Redis。",
+      "nodeIds": ["file:repo/memory.go"]
+    },
+    {
+      "order": 7,
+      "title": "配置管理",
+      "description": "config.go从YAML文件加载配置（App/MySQL/Redis），通过全局单例Get()访问。config.yaml定义了服务端口8088、数据库连接等。",
+      "nodeIds": ["file:config/config.go", "file:config/config.yaml"]
+    },
+    {
+      "order": 8,
+      "title": "下一步开发路线",
+      "description": "当前处于Phase 2中期：Base62算法已完成，内存Repo已实现，但Handler尚未接入logic/repo层。下一步：1) Handler调用logic+repo完成真实短链创建和跳转 2) 替换MemoryRepo为MySQL 3) 添加Redis缓存。",
+      "nodeIds": ["file:.planning/ROADMAP.md"]
+    }
+  ]
+}
