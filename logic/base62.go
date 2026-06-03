@@ -7,8 +7,23 @@ const base62Chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvw
 // Base62Length base62 字符长度常量
 const Base62Length = 62
 
+// ASCII 码对应的数组
+var base62Lookup [128]int8
+
+func init() {
+	// 先把所有位置设为 -1（非法标记）
+	for i := range base62Lookup {
+		base62Lookup[i] = -1
+	}
+	// 只填写 base62 中的 62 个字符
+	for i := 0; i < len(base62Chars); i++ {
+		// base62Chars[i] 得到的是 base62 对应的ASCII 码值，比如k是107
+		base62Lookup[base62Chars[i]] = int8(i)
+	}
+}
+
 // Encode 将 uint64 ID 转换为 Base62 短码
-// 例如: Encode(10024) -> "2Bk"
+// 例如: Encode(10024) -> "2bg"
 func Encode(id uint64) string {
 	if id == 0 {
 		return string(base62Chars[0])
@@ -38,22 +53,20 @@ func Encode(id uint64) string {
 }
 
 // Decode 解码, 将 Base62 短码 还原为 uint64 的 Id
-// 例如: Decode("2Bk") -> 10024
+// 例如: Decode("2bg") -> 10024
 func Decode(s string) (uint64, error) {
 	var res uint64
 
-	// 找到每个字符 对应的索引
 	// c 是 rune 类型的 可以存储一个完整的 unicode 字符
-	for _, c := range s {
-		idx := -1
-		for i, ch := range base62Chars {
-			if c == ch {
-				idx = i
-				break
-			}
+	for i := 0; i < len(s); i++ {
+		// 当前值
+		c := s[i]
+		if c >= 128 {
+			return 0, ErrInvalidBase62Char
 		}
 
-		// 没找到对应的字符
+		// O(1) 查表，拿到索引
+		idx := base62Lookup[c]
 		if idx == -1 {
 			return 0, ErrInvalidBase62Char
 		}

@@ -1,4 +1,3 @@
-<!-- GSD:project-start source:PROJECT.md -->
 ## Project
 
 **Go语言全栈工程师成长计划 - TinyURL项目**
@@ -14,10 +13,8 @@
 - **Web框架**: 必须使用Gin框架 —— Gin生态成熟，适合学习
 - **错误处理**: 结构化错误 — 自定义错误类型，规范错误信息
 - **代码规范**: gofmt + golint — 遵循Go官方代码风格
-- **文档标准**: 最详细级别 — 代码注释、README、API文档、设计文档、代码审查清单、最佳实践说明、常见问题解答
-<!-- GSD:project-end -->
+- **代码标准**: 最详细级别 — 代码注释、README、API文档、设计文档、代码审查清单、最佳实践说明、常见问题解答
 
-<!-- GSD:stack-start source:research/STACK.md -->
 ## Technology Stack
 
 ## 推荐技术栈
@@ -48,34 +45,16 @@
 - **直接使用 net/http 而不用 Gin** — Gin 生态更完整，中间件丰富
 - **只用 Redis 不用 MySQL** — 数据持久化很重要
 - **使用 MongoDB** — 对本项目来说过于复杂
-- [Go TinyURL short URL service architecture best practices](https://www.reddit.com/r/golang/comments/1h7kj9y/go_tinyurl_short_url_service_architecture/)
-- [Go Gin framework Redis MySQL implementation](https://www.reddit.com/r/golang/comments/1h7kj9y/go_tinyurl_short_url_service_architecture/)
-<!-- GSD:stack-end -->
 
-<!-- GSD:conventions-start source:CONVENTIONS.md -->
 ## Conventions
 
 Conventions not yet established. Will populate as patterns emerge during development.
-<!-- GSD:conventions-end -->
 
-<!-- GSD:architecture-start source:ARCHITECTURE.md -->
 ## Architecture
 
 Architecture not yet mapped. Follow existing patterns found in the codebase.
-<!-- GSD:architecture-end -->
 
-<!-- GSD:workflow-start source:GSD defaults -->
-## GSD Workflow Enforcement
 
-Before using Edit, Write, or other file-changing tools, start work through a GSD command so planning artifacts and execution context stay in sync.
-
-Use these entry points:
-- `/gsd:quick` for small fixes, doc updates, and ad-hoc tasks
-- `/gsd:debug` for investigation and bug fixing
-- `/gsd:execute-phase` for planned phase work
-
-Do not make direct repo edits outside a GSD workflow unless the user explicitly asks to bypass it.
-<!-- GSD:workflow-end -->
 
 ## gstack
 
@@ -117,9 +96,4 @@ Do not make direct repo edits outside a GSD workflow unless the user explicitly 
 
 
 
-<!-- GSD:profile-start -->
-## Developer Profile
 
-> Profile not yet configured. Run `/gsd:profile-user` to generate your developer profile.
-> This section is managed by `generate-claude-profile` -- do not edit manually.
-<!-- GSD:profile-end -->
