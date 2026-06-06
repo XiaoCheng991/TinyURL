@@ -2,6 +2,7 @@ package main
 
 import (
 	"TinyURL/gateway"
+	"TinyURL/middleware"
 	"TinyURL/repo"
 	"TinyURL/service"
 	"fmt"
@@ -20,12 +21,13 @@ func main() {
 	}
 
 	// 设置 Gin 模式
-	gin.SetMode(gin.ReleaseMode) // 生产模式
+	gin.SetMode(gin.ReleaseMode)
 
 	// 创建 Gin 路由
 	r := gin.New()
-	r.Use(gin.Recovery())
-	r.Use(gin.Logger())
+	r.Use(middleware.Recovery())
+	r.Use(middleware.RequestLogger())
+	r.Use(middleware.ErrorHandler())
 
 	// 基础健康检查
 	r.GET("/api/v1/health", func(c *gin.Context) {
@@ -46,6 +48,7 @@ func main() {
 	// 注册handler（注入 service）
 	r.POST("/api/v1/shorten", gateway.CreateShortURL(urlService))
 	r.GET("/api/v1/:code", gateway.RedirectURL(urlService))
+	r.GET("/api/v1/url/:code", gateway.GetURLInfo(urlService))
 
 	// 启动服务
 	addr := fmt.Sprintf("%s:%d", cfg.App.Host, cfg.App.Port)

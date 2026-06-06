@@ -12,9 +12,6 @@ var (
 	// ErrCodeTooLong 短码过长
 	ErrCodeTooLong = errors.New("short code too long")
 
-	// ErrURLNotFound URL 未找到
-	ErrURLNotFound = errors.New("url not found")
-
-	// ErrKeyNotFound Key 未找到
-	ErrKeyNotFound = errors.New("key not found")
+	// ErrDecodeFailed 解码失败
+	ErrDecodeFailed = errors.New("decode failed")
 )

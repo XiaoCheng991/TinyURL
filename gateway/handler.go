@@ -3,6 +3,8 @@ package gateway
 import (
 	"TinyURL/entity"
 	"TinyURL/logic"
+	"TinyURL/repo"
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -20,8 +22,12 @@ func CreateShortURL(s entity.URLService) gin.HandlerFunc {
 		}
 
 		// 2. 调 logic/repo 保存，拿到自增ID
-		mapping, status := s.Create(req.LongURL)
-		if status != http.StatusCreated {
+		mapping, err := s.Create(req.LongURL)
+		if err != nil {
+			status := http.StatusInternalServerError
+			if errors.Is(err, repo.ErrSaveFailed) {
+				status = http.StatusInternalServerError
+			}
 			c.JSON(status, gin.H{"error": "create failed"})
 			return
 		}
@@ -50,12 +56,43 @@ func RedirectURL(s entity.URLService) gin.HandlerFunc {
 		}
 
 		// 查 repo 拿长链
-		longURL, status := s.RedirectTo(code)
-		if status != http.StatusFound {
+		longURL, err := s.RedirectTo(code)
+		if err != nil {
+			status := http.StatusInternalServerError
+			if errors.Is(err, logic.ErrDecodeFailed) {
+				status = http.StatusInternalServerError
+			}
+			if errors.Is(err, repo.ErrDataNotFound) {
+				status = http.StatusInternalServerError
+			}
 			c.JSON(status, gin.H{"error": "not found"})
 			return
 		}
 
 		c.Redirect(http.StatusFound, longURL)
+	}
+}
+
+// GetURLInfo 查询短链详情
+func GetURLInfo(s entity.URLService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		code := c.Param("code")
+		if code == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "missing short_code"})
+			return
+		}
+
+		mapping, err := s.GetInfo(code)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+			return
+		}
+
+		c.JSON(http.StatusOK, entity.ShortenResponse{
+			LongURL:   mapping.LongURL,
+			ShortCode: code,
+			ShortURL:  "http://tiny.url/" + code,
+			CreatedAt: mapping.CreatedAt,
+		})
 	}
 }

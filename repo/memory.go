@@ -2,7 +2,6 @@ package repo
 
 import (
 	"TinyURL/entity"
-	"TinyURL/logic"
 	"sync"
 	"time"
 )
@@ -57,7 +56,7 @@ func (r *MemoryRepo) FindByID(id uint64) (*entity.URLMapping, error) {
 
 	if !ok {
 		// key 不存在
-		return nil, logic.ErrKeyNotFound
+		return nil, ErrDataNotFound
 	}
 
 	// 3. 存在就返回 mapping，不存在就返回 (nil, ErrKeyNotFound)

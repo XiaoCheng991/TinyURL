@@ -8,6 +8,7 @@ type URLRepository interface {
 
 // URLService URL服务层接口
 type URLService interface {
-	Create(longURL string) (*URLMapping, int)
-	RedirectTo(shortCode string) (string, int)
+	Create(longURL string) (*URLMapping, error)
+	RedirectTo(shortCode string) (string, error)
+	GetInfo(shortCode string) (*URLMapping, error)
 }
